@@ -14,7 +14,7 @@ function dashboardData(records, data) {
     materials: data.materials.length,
     services: data.services.length,
     lowStock: data.materials.filter(item => Number(item.stock) <= 5).sort((a, b) => a.stock - b.stock),
-    recent: [...records].sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.id - a.id).slice(0, 5)
+    recent: [...records].sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.id - a.id)
   };
 }
 function dashboardOrders(stage = 'Todos') { filter = stage; query = ''; dateFrom = ''; dateTo = ''; home(); }
@@ -34,11 +34,13 @@ function dashboard() {
       ${data.stages.map((stage, index) => `<button class="stage-row" onclick="dashboardOrders('${stage.name}')"><div class="row"><strong>${stage.name}</strong><span>${stage.count} <span class="muted">· ${money(stage.value)}</span></span></div><div class="stage-track"><span class="stage-fill stage-${index}" style="width:${data.total ? stage.count / data.total * 100 : 0}%"></span></div></button>`).join('')}
       <p class="dashboard-note">Valores registrados nas ordens. Não representam pagamentos recebidos.</p></section>
     <section class="dashboard-section"><div class="row"><h2>Atenção ao estoque</h2><button class="text-action" onclick="catalog('materials')">Ver estoque</button></div><p class="dashboard-note">Materiais com saldo de até 5 na unidade cadastrada. Ajuste manual do estoque.</p>
-      ${data.lowStock.length ? data.lowStock.map(item => `<button class="stock-alert" onclick="catalogEdit('materials',${item.id})"><span>${esc(item.name)}</span><strong class="stock-badge">${Number(item.stock)} ${esc(item.unit)}</strong></button>`).join('') : '<div class="dashboard-empty">Nenhum material com saldo baixo.</div>'}
+      <input id="stockSearch" aria-label="Pesquisar alertas de estoque" placeholder="Pesquisar material…"><div id="stockList"></div><div id="stockPager"></div>
     </section></div>
     <section class="dashboard-section"><div class="row"><h2>Atendimentos recentes</h2><button class="text-action" onclick="dashboardOrders()">Ver todos</button></div>
-      <div class="recent-list">${data.recent.length ? data.recent.map(order => `<button class="recent-row" onclick="edit(${order.id})"><div class="recent-info"><strong>${esc(order.name)}</strong><span>#${order.id} · ${esc(order.title)}</span><small>${esc(String(order.date).split('-').reverse().join('/'))}</small></div><div class="recent-value"><span class="badge">${esc(order.status)}</span><strong>${money(sum(order))}</strong></div></button>`).join('') : '<div class="dashboard-empty">Nenhum atendimento cadastrado. Comece com um novo orçamento.</div>'}</div>
+      <input id="recentSearch" aria-label="Pesquisar atendimentos no dashboard" placeholder="Pesquisar cliente, número ou serviço…"><div class="recent-list" id="recentList"></div><div id="recentPager"></div>
     </section><div class="notice">Dados deste navegador · Visão geral de todos os registros, sem filtro de período.</div>`;
+  mountPagedList({records:data.lowStock,search:document.querySelector('#stockSearch'),list:document.querySelector('#stockList'),pager:document.querySelector('#stockPager'),matches:(item,q)=>searchText(item.name).includes(q),renderItem:item=>`<button class="stock-alert" onclick="catalogEdit('materials',${item.id})"><span>${esc(item.name)}</span><strong class="stock-badge">${Number(item.stock)} ${esc(item.unit)}</strong></button>`,empty:'Nenhum material com saldo baixo encontrado.'});
+  mountPagedList({records:data.recent,search:document.querySelector('#recentSearch'),list:document.querySelector('#recentList'),pager:document.querySelector('#recentPager'),matches:(order,q)=>searchText(`${order.name} ${order.id} ${order.title}`).includes(q),renderItem:order=>`<button class="recent-row" onclick="edit(${order.id})"><div class="recent-info"><strong>${esc(order.name)}</strong><span>#${order.id} · ${esc(order.title)}</span><small>${esc(String(order.date).split('-').reverse().join('/'))}</small></div><div class="recent-value"><span class="badge">${esc(order.status)}</span><strong>${money(sum(order))}</strong></div></button>`,empty:'Nenhum atendimento encontrado.'});
   window.scrollTo(0, 0);
 }
 // Mantém a navegação selecionada mesmo ao entrar por atalhos do painel.
