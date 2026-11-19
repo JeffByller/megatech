@@ -25,7 +25,7 @@ function catalog(type) {
   app.innerHTML = `<div class="top"><div><div class="muted">CADASTROS</div><h1>${catalogLabels[type]}</h1></div><button onclick="catalogEdit('${type}')">+ Cadastrar</button></div><p>${type === 'materials' ? 'Cadastre preços e ajuste o saldo disponível. Vincular à OS não dá baixa automática no estoque.' : 'Cadastre uma vez e selecione nos próximos atendimentos.'}</p><input id="catalogSearch" placeholder="Buscar cadastro…" aria-label="Buscar cadastro"><div class="cards" id="catalogCards"></div>`;
   const render = () => {
     const q = document.querySelector('#catalogSearch').value.toLowerCase();
-    document.querySelector('#catalogCards').innerHTML = catalogs[type].filter(r => `${r.name} ${r.sku || ''} ${r.phone || ''}`.toLowerCase().includes(q)).map(r => `<article class="card"><h3>${esc(r.name)}</h3><p>${type === 'clients' ? esc([r.phone, r.city].filter(Boolean).join(' · ')) : `${money(r.price)} / ${esc(r.unit)}${type === 'materials' ? ` · Saldo: ${r.stock} ${esc(r.unit)}` : ''}`}</p><div class="actions"><button class="secondary" onclick="catalogEdit('${type}',${r.id})">Editar</button><button class="secondary" onclick="removeCatalog('${type}',${r.id})">Excluir</button></div></article>`).join('') || '<p>Nenhum cadastro encontrado.</p>';
+    document.querySelector('#catalogCards').innerHTML = catalogs[type].filter(r => `${r.name} ${r.sku || ''} ${r.phone || ''}`.toLowerCase().includes(q)).map(r => `<article class="catalog-row"><div class="catalog-info"><h3>${esc(r.name)}</h3><p>${type === 'clients' ? esc([r.phone, r.city].filter(Boolean).join(' · ')) : `${money(r.price)} / ${esc(r.unit)}${type === 'materials' ? ` · Saldo: ${r.stock} ${esc(r.unit)}` : ''}`}</p></div><div class="actions"><button class="secondary" onclick="catalogEdit('${type}',${r.id})">Editar</button><button class="secondary delete-action" onclick="removeCatalog('${type}',${r.id})">Excluir</button></div></article>`).join('') || '<p>Nenhum cadastro encontrado.</p>';
   };
   document.querySelector('#catalogSearch').oninput = render; render(); window.scrollTo(0, 0);
 }
@@ -52,8 +52,8 @@ edit = function(id) {
   for (const [index, type] of [[2, 'materials'], [3, 'services']]) {
     sections[index].insertAdjacentHTML('afterbegin', `<div class="picker"><label>Buscar ${type === 'materials' ? 'material' : 'serviço'} cadastrado<input id="${type}Search" list="${type}Options" placeholder="Digite para buscar"><datalist id="${type}Options">${catalogs[type].map(r => `<option value="${esc(r.name)} · #${r.id}">${money(r.price)} / ${esc(r.unit)}</option>`).join('')}</datalist></label><button type="button" class="secondary" style="margin-top:8px" onclick="applyItem('${type}')">Vincular à OS</button></div>`);
   }
-  document.querySelector('.actions').insertAdjacentHTML('beforeend', '<button type="button" class="secondary" onclick="shareOrder()">Compartilhar / WhatsApp</button><button type="button" class="secondary" onclick="if(document.querySelector(\'#form\').reportValidity() && save(false))window.print()">Imprimir / salvar PDF</button>');
-  const printButton = document.querySelector('.actions button:nth-child(2)'); printButton.textContent = 'Imprimir / compartilhar';
+  const actions = document.querySelector('#form .actions');
+  actions.innerHTML = `<button type="submit">Salvar atendimento</button><button type="button" class="secondary" onclick="downloadOrderPdf()">Baixar PDF</button><button type="button" class="secondary" onclick="shareOrder()">Compartilhar PDF / WhatsApp</button>`;
 };
 function applyClient() {
   const value = document.querySelector('#clientSearch').value;
