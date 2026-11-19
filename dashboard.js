@@ -17,7 +17,7 @@ function dashboardData(records, data) {
     recent: [...records].sort((a, b) => String(b.date).localeCompare(String(a.date)) || b.id - a.id).slice(0, 5)
   };
 }
-function dashboardOrders(stage = 'Todos') { filter = stage; query = ''; home(); }
+function dashboardOrders(stage = 'Todos') { filter = stage; query = ''; dateFrom = ''; dateTo = ''; home(); }
 function dashboard() {
   const data = dashboardData(orders, catalogs);
   const stat = (label, value, action, detail) => `<button class="dashboard-stat" onclick="${action}"><span>${label}</span><strong>${value}</strong><small>${detail}</small></button>`;
