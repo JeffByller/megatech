@@ -22,10 +22,12 @@ function writeCatalog(type, next) {
   catch { alert('Não foi possível salvar o cadastro neste navegador.'); return false; }
 }
 function catalog(type) {
-  app.innerHTML = `<div class="top"><div><div class="muted">CADASTROS</div><h1>${catalogLabels[type]}</h1></div><button onclick="catalogEdit('${type}')">+ Cadastrar</button></div><p>${type === 'materials' ? 'Cadastre preços e ajuste o saldo disponível. Vincular à OS não dá baixa automática no estoque.' : 'Cadastre uma vez e selecione nos próximos atendimentos.'}</p><input id="catalogSearch" placeholder="Buscar cadastro…" aria-label="Buscar cadastro"><div class="cards" id="catalogCards"></div>`;
+  app.innerHTML = `<div class="top"><div><div class="muted">CADASTROS</div><h1>${catalogLabels[type]}</h1></div><button onclick="catalogEdit('${type}')">+ Cadastrar</button></div><p>${type === 'materials' ? 'Cadastre preços e ajuste o saldo disponível. Vincular à OS não dá baixa automática no estoque.' : 'Cadastre uma vez e selecione nos próximos atendimentos.'}</p><input id="catalogSearch" placeholder="Buscar cadastro…" aria-label="Buscar cadastro"><p id="catalogCount" class="catalog-count" role="status"></p><div class="cards" id="catalogCards"></div>`;
   const render = () => {
-    const q = document.querySelector('#catalogSearch').value.toLowerCase();
-    document.querySelector('#catalogCards').innerHTML = catalogs[type].filter(r => `${r.name} ${r.sku || ''} ${r.phone || ''}`.toLowerCase().includes(q)).map(r => `<article class="catalog-row"><div class="catalog-info"><h3>${esc(r.name)}</h3><p>${type === 'clients' ? esc([r.phone, r.city].filter(Boolean).join(' · ')) : `${money(r.price)} / ${esc(r.unit)}${type === 'materials' ? ` · Saldo: ${r.stock} ${esc(r.unit)}` : ''}`}</p></div><div class="actions"><button class="secondary" onclick="catalogEdit('${type}',${r.id})">Editar</button><button class="secondary delete-action" onclick="removeCatalog('${type}',${r.id})">Excluir</button></div></article>`).join('') || '<p>Nenhum cadastro encontrado.</p>';
+    const q = searchText(document.querySelector('#catalogSearch').value);
+    const matches = catalogs[type].filter(r => searchText(`${r.name} ${r.sku || ''} ${r.phone || ''} ${r.whatsapp || ''} ${r.city || ''} ${r.email || ''}`).includes(q));
+    document.querySelector('#catalogCount').textContent = `${matches.length} de ${catalogs[type].length} cadastros`;
+    document.querySelector('#catalogCards').innerHTML = matches.map(r => `<article class="catalog-row"><div class="catalog-info"><h3>${esc(r.name)}</h3><p>${type === 'clients' ? esc([r.phone, r.city].filter(Boolean).join(' · ')) : `${money(r.price)} / ${esc(r.unit)}${type === 'materials' ? ` · Saldo: ${r.stock} ${esc(r.unit)}` : ''}`}</p></div><div class="actions"><button class="secondary" onclick="catalogEdit('${type}',${r.id})">Editar</button><button class="secondary delete-action" onclick="removeCatalog('${type}',${r.id})">Excluir</button></div></article>`).join('') || '<p>Nenhum cadastro encontrado.</p>';
   };
   document.querySelector('#catalogSearch').oninput = render; render(); window.scrollTo(0, 0);
 }
